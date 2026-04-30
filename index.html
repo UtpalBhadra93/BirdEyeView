@@ -17,7 +17,7 @@
     }
 
     #themeToggle {
-      position: absolute;
+      position: fixed;
       top: 10px;
       left: 10px;
       z-index: 30;
@@ -30,11 +30,11 @@
     }
 
     /* =======================
-       SIDEBAR + COLLAPSE
+       SIDEBAR (DESKTOP + MOBILE)
     ======================= */
 
     #sidebar {
-      position: absolute;
+      position: fixed;
       top: 0;
       right: 0;
       width: 280px;
@@ -47,47 +47,66 @@
       z-index: 25;
       transition: transform 0.3s ease;
       transform: translateX(0);
+      -webkit-overflow-scrolling: touch;
     }
 
     #sidebar.collapsed {
       transform: translateX(100%);
     }
 
+    /* =======================
+       TOGGLE BUTTON
+    ======================= */
+
     #sidebarToggle {
-      position: absolute;
+      position: fixed;
       top: 10px;
-      right: 290px;
+      right: 10px;
       z-index: 40;
-      padding: 6px 10px;
+      padding: 8px 10px;
       background: #333;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      transition: right 0.3s ease;
-    }
-
-    #sidebar.collapsed + #sidebarToggle {
-      right: 10px;
     }
 
     .row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
     }
 
     button.small {
       font-size: 12px;
       margin-right: 5px;
-      padding: 5px 8px;
+      padding: 6px 8px;
     }
+
+    /* =======================
+       MOBILE RESPONSIVE
+    ======================= */
+
+    @media (max-width: 768px) {
+
+      #sidebar {
+        width: 85vw;
+      }
+
+      #sidebarToggle {
+        top: 12px;
+        right: 12px;
+        padding: 10px 12px;
+      }
+    }
+
   </style>
 </head>
 
 <body>
 
 <button id="themeToggle">Light Mode</button>
+<button id="sidebarToggle">⟨</button>
 
 <div id="sidebar">
   <h3>Communities</h3>
@@ -97,8 +116,6 @@
 
   <div id="list"></div>
 </div>
-
-<button id="sidebarToggle">⟨</button>
 
 <div id="graph"></div>
 
@@ -164,7 +181,6 @@ fetch('graph.json')
       document.getElementById(`c_${c}`).onchange = (e) => {
         if (e.target.checked) active.add(c);
         else active.delete(c);
-
         updateVisibility();
       };
     });
@@ -174,10 +190,7 @@ fetch('graph.json')
 
   const Graph = ForceGraph3D()
     (document.getElementById('graph'))
-    .graphData({
-      nodes: nodesAll,
-      links: linksAll
-    })
+    .graphData({ nodes: nodesAll, links: linksAll })
     .nodeLabel(n => n.label || n.id)
     .nodeAutoColorBy('group')
     .nodeRelSize(6)
@@ -195,10 +208,7 @@ fetch('graph.json')
       .linkVisibility(l => {
         const s = nodesAll.find(n => n.id === (l.source.id || l.source));
         const t = nodesAll.find(n => n.id === (l.target.id || l.target));
-
-        return s && t &&
-          active.has(s.group) &&
-          active.has(t.group);
+        return s && t && active.has(s.group) && active.has(t.group);
       });
 
     Graph.refresh();
@@ -223,17 +233,16 @@ fetch('graph.json')
 
     Graph
       .backgroundColor(isDark ? '#0b0b0b' : '#ffffff')
-      .linkColor(() =>
-        isDark ? 'rgba(255,255,255,0.4)' : '#000000'
-      );
+      .linkColor(() => isDark ? 'rgba(255,255,255,0.4)' : '#000');
 
     document.getElementById("themeToggle").innerText =
       isDark ? "Light Mode" : "Dark Mode";
   };
 
   // =========================
-  // SIDEBAR TOGGLE
+  // SIDEBAR TOGGLE (MOBILE READY)
   // =========================
+
   const sidebar = document.getElementById("sidebar");
   const toggleBtn = document.getElementById("sidebarToggle");
 
@@ -241,10 +250,16 @@ fetch('graph.json')
 
   toggleBtn.onclick = () => {
     collapsed = !collapsed;
-
     sidebar.classList.toggle("collapsed", collapsed);
     toggleBtn.innerText = collapsed ? "⟩" : "⟨";
   };
+
+  // AUTO-COLLAPSE ON MOBILE
+  if (window.innerWidth < 768) {
+    sidebar.classList.add("collapsed");
+    collapsed = true;
+    toggleBtn.innerText = "⟩";
+  }
 
 });
 </script>
