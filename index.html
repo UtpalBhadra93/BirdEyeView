@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Bird Eye View Vela</title>
+  <title>Graphify 3D</title>
 
   <style>
     body {
@@ -29,6 +29,10 @@
       cursor: pointer;
     }
 
+    /* =======================
+       SIDEBAR + COLLAPSE
+    ======================= */
+
     #sidebar {
       position: absolute;
       top: 0;
@@ -41,6 +45,30 @@
       overflow-y: auto;
       font-size: 14px;
       z-index: 25;
+      transition: transform 0.3s ease;
+      transform: translateX(0);
+    }
+
+    #sidebar.collapsed {
+      transform: translateX(100%);
+    }
+
+    #sidebarToggle {
+      position: absolute;
+      top: 10px;
+      right: 290px;
+      z-index: 40;
+      padding: 6px 10px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: right 0.3s ease;
+    }
+
+    #sidebar.collapsed + #sidebarToggle {
+      right: 10px;
     }
 
     .row {
@@ -70,6 +98,8 @@
   <div id="list"></div>
 </div>
 
+<button id="sidebarToggle">⟨</button>
+
 <div id="graph"></div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -82,9 +112,6 @@ fetch('graph.json')
 .then(r => r.json())
 .then(data => {
 
-  // =========================
-  // NORMALIZE DATA
-  // =========================
   const nodesAll = data.nodes.map(n => ({
     id: n.id,
     label: n.label,
@@ -98,9 +125,6 @@ fetch('graph.json')
 
   const communities = [...new Set(nodesAll.map(n => n.group))];
 
-  // =========================
-  // COMMUNITY CONNECTIVITY SCORE
-  // =========================
   const communityStrength = {};
   communities.forEach(c => communityStrength[c] = 0);
 
@@ -112,19 +136,12 @@ fetch('graph.json')
     if (t) communityStrength[t.group] += 1;
   });
 
-  // SORT DESCENDING (IMPORTANT)
   communities.sort((a, b) =>
     (communityStrength[b] || 0) - (communityStrength[a] || 0)
   );
 
-  // =========================
-  // STATE
-  // =========================
   let active = new Set(communities);
 
-  // =========================
-  // SIDEBAR
-  // =========================
   const list = document.getElementById("list");
 
   function renderSidebar() {
@@ -155,9 +172,6 @@ fetch('graph.json')
 
   renderSidebar();
 
-  // =========================
-  // GRAPH (LOAD ONCE ONLY)
-  // =========================
   const Graph = ForceGraph3D()
     (document.getElementById('graph'))
     .graphData({
@@ -175,11 +189,7 @@ fetch('graph.json')
     .d3Force('center', d3.forceCenter(0,0,0))
     .backgroundColor('#0b0b0b');
 
-  // =========================
-  // VISIBILITY CONTROL (STABLE)
-  // =========================
   function updateVisibility() {
-
     Graph
       .nodeVisibility(n => active.has(n.group))
       .linkVisibility(l => {
@@ -196,9 +206,6 @@ fetch('graph.json')
 
   updateVisibility();
 
-  // =========================
-  // SELECT ALL / NONE
-  // =========================
   document.getElementById("selectAll").onclick = () => {
     active = new Set(communities);
     renderSidebar();
@@ -211,9 +218,6 @@ fetch('graph.json')
     updateVisibility();
   };
 
-  // =========================
-  // THEME
-  // =========================
   document.getElementById("themeToggle").onclick = () => {
     isDark = !isDark;
 
@@ -225,6 +229,21 @@ fetch('graph.json')
 
     document.getElementById("themeToggle").innerText =
       isDark ? "Light Mode" : "Dark Mode";
+  };
+
+  // =========================
+  // SIDEBAR TOGGLE
+  // =========================
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("sidebarToggle");
+
+  let collapsed = false;
+
+  toggleBtn.onclick = () => {
+    collapsed = !collapsed;
+
+    sidebar.classList.toggle("collapsed", collapsed);
+    toggleBtn.innerText = collapsed ? "⟩" : "⟨";
   };
 
 });
