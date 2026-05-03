@@ -1,6 +1,6 @@
-# Graphify 3D – Bird’s Eye View of My Project
+# Graphify 3D – Bird’s Eye View of Vela
 
-This project uses **Graphify** and **3d-force-graph** to create an interactive 3D visualization of a complex graph structure. It provides a bird’s-eye view of my project, helping explore relationships, clusters, and connectivity in real time.
+This project uses **Graphify** and **3d-force-graph** to create an interactive 3D visualization of a complex graph structure. It provides a bird’s-eye view of vela, helping explore relationships, clusters, and connectivity in real time.
 
 ## 🧠 What it does
 
